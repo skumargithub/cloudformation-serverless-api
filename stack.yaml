@@ -29,10 +29,10 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       AttributeDefinitions:
-        - AttributeName: user_id
+        - AttributeName: iot_id
           AttributeType: S
       KeySchema:
-        - AttributeName: user_id
+        - AttributeName: iot_id
           KeyType: HASH
 
   # FIXME How to hook up custom domain?
@@ -56,7 +56,7 @@ Resources:
         produces:
           - application/json
         paths:
-          /users/{userId}/hello:
+          /iotinfo/{iotId}:
             get:
               description: TBD
               x-amazon-apigateway-integration:
@@ -67,28 +67,23 @@ Resources:
                 type: aws_proxy
               operationId: getHello
               parameters:
-                - name: userId
+                - name: iotId
                   in: path
                   description: TBD
                   required: true
                   type: string
                   format: uuid
+          /iot:
             post:
               description: TBD
               x-amazon-apigateway-integration:
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloLambda.Arn}/invocations"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloLambdaPut.Arn}/invocations"
                 credentials: !GetAtt MyApiGatewayRole.Arn
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: aws_proxy
-              operationId: postHello
+              operationId: postIot
               parameters:
-                - name: userId
-                  in: path
-                  description: TBD
-                  required: true
-                  type: string
-                  format: uuid
                 - name: body
                   in: body
                   description: TBD
@@ -96,9 +91,12 @@ Resources:
                   schema:
                     type: object
                     required:
-                    - email
+                    - iot_id
+                    - weight
                     properties:
-                      email:
+                      iot_id:
+                        type: string
+                      weight:
                         type: string
 
   MyApiGatewayDeployment:
@@ -127,8 +125,22 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !GetAtt HelloLambda.Arn
+                  - !GetAtt HelloLambdaPut.Arn
 
   HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt HelloLambdaRole.Arn  # TODO
+      Handler: index.handleHttpRequest
+      Runtime: nodejs12.x
+      Environment:
+        Variables:
+          HELLO_DB: !Sub "arn:aws:dynamodb:${AWS::Region}:*:table/${HelloTable}"
+      Code:
+        ZipFile: |
+          exports.handlers = function(event, context) {}
+
+  HelloLambdaPut:
     Type: AWS::Lambda::Function
     Properties:
       Role: !GetAtt HelloLambdaRole.Arn  # TODO

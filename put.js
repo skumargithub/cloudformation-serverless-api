@@ -11,7 +11,6 @@ const helloTableName = helloDBArnArr[helloDBArnArr.length - 1];
 // handleHttpRequest is the entry point for Lambda requests
 exports.handleHttpRequest = function(request, context, done) {
   try {
-    const userId = request.pathParameters.userId;
     let response = {
       headers: {},
       body: '',
@@ -19,27 +18,6 @@ exports.handleHttpRequest = function(request, context, done) {
     };
 
     switch (request.httpMethod) {
-      case 'GET': {
-        console.log('GET');
-        let dynamo = new AWS.DynamoDB();
-        var params = {
-          TableName: helloTableName,
-          Key: { 'user_id' : { S: userId } },
-          ProjectionExpression: 'email'
-        };
-        // Call DynamoDB to read the item from the table
-        dynamo.getItem(params, function(err, data) {
-          if (err) {
-            console.log("Error", err);
-            throw `Dynamo Get Error (${err})`
-          } else {
-            console.log("Success", data.Item.email);
-            response.body = JSON.stringify(data.Item.email);
-            done(null, response);
-          }
-        });
-        break;
-      }
       case 'POST': {
         console.log('POST');
         let bodyJSON = JSON.parse(request.body || '{}');
@@ -47,8 +25,8 @@ exports.handleHttpRequest = function(request, context, done) {
         let params = {
           TableName: helloTableName,
           Item: {
-            'user_id': { S: userId },
-            'email': { S: bodyJSON['email'] }
+            'iot_id': { S: bodyJSON['iot_id'] },
+            'weight': { S: bodyJSON['weight'] }
           }
         };
         dynamo.putItem(params, function(error, data) {

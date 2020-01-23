@@ -2,6 +2,7 @@
 
 curl -i \
   -H "Accept: application/json" \
-  -H "X-HTTP-Method-Override: PUT" \
-  -X POST -d "email":"skumar124@gmail.com" \
-  https://0hvlwe0scd.execute-api.us-east-2.amazonaws.com/prod/users/124/hello
+  -H "X-HTTP-Method-Override: POST" \
+  -X POST -d '{"iot_id":"3","weight":"3wt"}' \
+  https://zqb8xqj6ce.execute-api.us-east-2.amazonaws.com/prod/iot
+ 
